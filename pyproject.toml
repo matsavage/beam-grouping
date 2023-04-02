@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "beam-grouping"
+version = "0.1.0"
+description = ""
+authors = ["Mathew Savage <mathew@mathewsavage.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+apache-beam = {extras = ["gcp", "test"], version = "^2.46.0"}
+google-cloud = "^0.34.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
