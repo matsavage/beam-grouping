@@ -27,7 +27,6 @@ class ExtractElement(beam.DoFn):
                 "InputElement",
                 (
                     output_element.id,
-                    # output_element
                     window.TimestampedValue(
                         output_element,
                         output_element.timestamp.timestamp(),
