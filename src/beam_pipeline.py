@@ -15,12 +15,12 @@ class ExtractElement(beam.DoFn):
 
 
 class Logger(beam.DoFn):
+    def __init__(self, label=str):
+        super().__init__()
+        self.label = label
+
     def process(self, element, *args, **kwargs):
-        label = kwargs.get("label")
-        if label is None:
-            logging.info(element)
-        else:
-            logging.info("%s: %s", label, element)
+        logging.info("%s: %s", self.label, element)
         yield element
 
 
@@ -53,7 +53,7 @@ def main(argv=None, save_main_session=True):
             input
             | "GroupIntoBatches"
             >> beam.GroupIntoBatches(batch_size=100, max_buffering_duration_secs=1)
-            | "LogWindow" >> beam.ParDo(Logger(), label="raw_window")
+            | "LogWindow" >> beam.ParDo(Logger(label="raw_window"))
         )
 
 
