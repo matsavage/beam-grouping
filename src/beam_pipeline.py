@@ -39,7 +39,7 @@ class ExtractElement(beam.DoFn):
 
 
 class Logger(beam.DoFn):
-    def __init__(self, label=str):
+    def __init__(self, label: str):
         super().__init__()
         self.label = label
 
