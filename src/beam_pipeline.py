@@ -14,24 +14,26 @@ InputElement = namedtuple("InputElement", "id timestamp")
 
 
 class ExtractElement(beam.DoFn):
+    def produce_output(self, x):
+        x_out = InputElement(
+            id=x["id"],
+            timestamp=datetime.fromisoformat(x["timestamp"]),
+        )
+
+        return (
+            x_out.id,
+            window.TimestampedValue(
+                x_out,
+                x_out.timestamp.timestamp(),
+            ),
+        )
+
     def process(self, element, *args, **kwargs):
         try:
             element_json = json.loads(element.decode("utf-8"))
 
-            output_element = InputElement(
-                id=element_json["id"],
-                timestamp=datetime.fromisoformat(element_json["timestamp"]),
-            )
-
             yield beam.pvalue.TaggedOutput(
-                "InputElement",
-                (
-                    output_element.id,
-                    window.TimestampedValue(
-                        output_element,
-                        output_element.timestamp.timestamp(),
-                    ),
-                ),
+                "InputElement", self.produce_output(element_json)
             )
 
         except Exception as exception:
