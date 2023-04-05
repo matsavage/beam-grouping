@@ -13,8 +13,8 @@ from beam_pipeline import ExtractElement, InputElement
 
 class TestTransformElement(unittest.TestCase):
     ELEMENTS = (
-        {"id": 1, "timestamp": "1970-01-01T01:00:00.000000"},
-        {"id": 1, "timestamp": "1970-01-01T01:00:00.001000"},
+        {"id": 1, "timestamp": "1970-01-01T01:00:00.000000", "value": 1},
+        {"id": 1, "timestamp": "1970-01-01T01:00:00.001000", "value": 1},
     )
 
     EXPECTED_ELEMENTS = [ExtractElement.produce_output("", x) for x in ELEMENTS]
@@ -24,14 +24,14 @@ class TestTransformElement(unittest.TestCase):
             (
                 1,
                 window.TimestampedValue(
-                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 0)),
+                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 0), value=1),
                     0,
                 ),
             ),
             (
                 1,
                 window.TimestampedValue(
-                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 1000)),
+                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 1000), value=1),
                     0.001000,
                 ),
             ),
