@@ -6,4 +6,4 @@ run-pipeline:
 	python3 -m beam_grouping.beam_pipeline
 
 run-publisher:
-	python3 util/pubsub_publisher.py 
+	python3 util/pubsub_publisher.py
