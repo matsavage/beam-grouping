@@ -1,17 +1,11 @@
 import argparse
 import logging
-import json
-from typing import Tuple
-from datetime import datetime
-from collections import namedtuple
 
 import apache_beam as beam
-from apache_beam.transforms.window import TimestampedValue
-from apache_beam.io import ReadFromPubSub, WriteToBigQuery
+from apache_beam.io import ReadFromPubSub
 from apache_beam.options.pipeline_options import PipelineOptions, StandardOptions
+from apache_beam.transforms import trigger
 from apache_beam.utils.timestamp import Duration
-from apache_beam.utils.timestamp import TimestampTypes
-from apache_beam.transforms import trigger, window
 
 from beam_grouping.transformers import ExtractElement
 
@@ -41,9 +35,11 @@ def PrintWindowInfo(pcollection):
 
     class PrintCountsInfo(beam.DoFn):
         def process(self, num_elements, window=beam.DoFn.WindowParam):
-            logging.info("-"*80)
+            logging.info("-" * 80)
             logging.info(
-                "Window [%s] has %s elements", human_readable_window(window), num_elements
+                "Window [%s] has %s elements",
+                human_readable_window(window),
+                num_elements,
             )
             # print(
             #     f">> Window [{human_readable_window(window)}] has {num_elements} elements"
@@ -86,17 +82,16 @@ class Logger(beam.DoFn):
 
 
 def combine_function(values):
-    
     try:
         if values is not None:
             data = [y for y in [x for x in values][0]]
             logging.info(
-                ">Group [%s - %s] id: %s records: %02d mean: %+1.3f", 
-                data[0].value.timestamp, 
+                ">Group [%s - %s] id: %s records: %02d mean: %+1.3f",
+                data[0].value.timestamp,
                 data[-1].value.timestamp,
                 data[0].value.id,
                 len(data),
-                sum([d.value.value for d in data]) / len(data)
+                sum([d.value.value for d in data]) / len(data),
             )
     except Exception:
         pass
@@ -122,24 +117,17 @@ def main(argv=None):
             >> beam.ParDo(ExtractElement()).with_outputs("InputElement", "Exception")
         )
 
-        windows = (
-            input.InputElement
-            | beam.WindowInto(
-                beam.window.FixedWindows(10),
-                trigger=trigger.AfterWatermark(),
-                accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
-                allowed_lateness=Duration.of(0)
-            )
+        windows = input.InputElement | beam.WindowInto(
+            beam.window.FixedWindows(10),
+            trigger=trigger.AfterWatermark(),
+            accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
+            allowed_lateness=Duration.of(0),
         )
 
         # Log window info
         windows | "Print Window Info" >> PrintWindowInfo()
 
-        grouping = (
-            windows
-                | beam.GroupByKey()
-                | beam.CombinePerKey(combine_function)
-        )
+        grouping = windows | beam.GroupByKey() | beam.CombinePerKey(combine_function)
 
         # all_exceptions = beam.Flatten(
         #     input.Exception,

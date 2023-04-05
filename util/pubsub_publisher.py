@@ -1,24 +1,23 @@
 import json
-import time
-import random
 import logging
-
+import random
+import time
 from datetime import datetime
-from google.cloud import pubsub_v1
 
 import numpy as np
+from google.cloud import pubsub_v1
 
 project_id = "ms-data-projects"
 topic_id = "demo-topic"
 
 
 def build_data_packet() -> str:
-    random_value =  random.randint(0, 9)
+    random_value = random.randint(0, 9)
     return json.dumps(
         {
             "id": random_value,
             "timestamp": datetime.utcnow().isoformat(),
-            "value": np.random.normal(random_value, 0.5)
+            "value": np.random.normal(random_value, 0.5),
         }
     )
 

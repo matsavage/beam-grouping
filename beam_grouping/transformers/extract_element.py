@@ -1,27 +1,18 @@
-
-import argparse
-import logging
 import json
-from typing import Tuple
 from datetime import datetime
-from collections import namedtuple
 
 import apache_beam as beam
 from apache_beam.transforms.window import TimestampedValue
-from apache_beam.io import ReadFromPubSub, WriteToBigQuery
-from apache_beam.options.pipeline_options import PipelineOptions, StandardOptions
-from apache_beam.utils.timestamp import Duration
-from apache_beam.utils.timestamp import TimestampTypes
-from apache_beam.transforms import trigger, window
 
 from beam_grouping.pipeline_dataclasses import InputElement
+
 
 class ExtractElement(beam.DoFn):
     def produce_output(self, x):
         x_out = InputElement(
             id=x["id"],
             timestamp=datetime.fromisoformat(x["timestamp"]),
-            value=x["value"]
+            value=x["value"],
         )
 
         return (

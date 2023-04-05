@@ -1,15 +1,14 @@
 import json
-from datetime import datetime
 import unittest
+from datetime import datetime
 
 import apache_beam as beam
 from apache_beam import window
 from apache_beam.testing import test_pipeline
 from apache_beam.testing.util import assert_that, equal_to
 
-
-from beam_grouping.transformers import ExtractElement
 from beam_grouping.pipeline_dataclasses import InputElement
+from beam_grouping.transformers import ExtractElement
 
 
 class TestTransformElement(unittest.TestCase):
@@ -25,14 +24,18 @@ class TestTransformElement(unittest.TestCase):
             (
                 1,
                 window.TimestampedValue(
-                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 0), value=1),
+                    InputElement(
+                        id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 0), value=1
+                    ),
                     0,
                 ),
             ),
             (
                 1,
                 window.TimestampedValue(
-                    InputElement(id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 1000), value=1),
+                    InputElement(
+                        id=1, timestamp=datetime(1970, 1, 1, 1, 0, 0, 1000), value=1
+                    ),
                     0.001000,
                 ),
             ),
