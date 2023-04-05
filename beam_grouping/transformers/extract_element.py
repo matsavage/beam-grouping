@@ -14,8 +14,7 @@ from apache_beam.utils.timestamp import Duration
 from apache_beam.utils.timestamp import TimestampTypes
 from apache_beam.transforms import trigger, window
 
-InputElement = namedtuple("InputElement", "id timestamp value")
-
+from beam_grouping.pipeline_dataclasses import InputElement
 
 class ExtractElement(beam.DoFn):
     def produce_output(self, x):

@@ -16,9 +16,6 @@ from apache_beam.transforms import trigger, window
 from beam_grouping.transformers import ExtractElement
 
 
-InputElement = namedtuple("InputElement", "id timestamp value")
-
-
 def human_readable_window(window) -> str:
     """Formats a window object into a human readable string."""
     if isinstance(window, beam.window.GlobalWindow):
