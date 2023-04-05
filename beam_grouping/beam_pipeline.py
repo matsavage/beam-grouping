@@ -8,6 +8,7 @@ from apache_beam.transforms import trigger
 from apache_beam.utils.timestamp import Duration
 
 from beam_grouping.transformers import ExtractElement
+from beam_grouping.pipeline_dataclasses import PipelineTags
 
 
 def human_readable_window(window) -> str:
@@ -117,7 +118,7 @@ def main(argv=None):
             >> beam.ParDo(ExtractElement()).with_outputs("InputElement", "Exception")
         )
 
-        windows = input.InputElement | beam.WindowInto(
+        windows = input[PipelineTags.INPUT_ELEMENT] | beam.WindowInto(
             beam.window.FixedWindows(10),
             trigger=trigger.AfterWatermark(),
             accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
@@ -130,7 +131,7 @@ def main(argv=None):
         grouping = windows | beam.GroupByKey() | beam.CombinePerKey(combine_function)
 
         # all_exceptions = beam.Flatten(
-        #     input.Exception,
+        #     input.[PipelineTags.EXCEPTION]
         #     ...
         # )
 

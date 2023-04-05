@@ -1,3 +1,9 @@
-from collections import namedtuple
+from datetime import datetime
 
-InputElement = namedtuple("InputElement", "id timestamp value")
+import pydantic
+
+
+class InputElement(pydantic.BaseModel):
+    id: int
+    timestamp: datetime
+    value: float
