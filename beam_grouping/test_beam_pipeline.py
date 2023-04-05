@@ -8,7 +8,7 @@ from apache_beam.testing import test_pipeline
 from apache_beam.testing.util import assert_that, equal_to
 
 
-from beam_pipeline import ExtractElement, InputElement
+from beam_grouping.transformers import ExtractElement, InputElement
 
 
 class TestTransformElement(unittest.TestCase):
