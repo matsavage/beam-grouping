@@ -52,6 +52,6 @@ class TestTransformElement(unittest.TestCase):
                 "InputElement", "Exception"
             )
 
-            assert_that(output.Exception, equal_to([]), label="Expect no exceptions")
+        assert_that(output.Exception, equal_to([]), label="Expect no exceptions")
 
-            assert_that(output.InputElement, equal_to(self.EXPECTED_ELEMENTS))
+        assert_that(output.InputElement, equal_to(self.EXPECTED_ELEMENTS))
