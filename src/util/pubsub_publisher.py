@@ -6,16 +6,19 @@ import logging
 from datetime import datetime
 from google.cloud import pubsub_v1
 
-# TODO(developer)
+import numpy as np
+
 project_id = "ms-data-projects"
 topic_id = "demo-topic"
 
 
 def build_data_packet() -> str:
+    random_value =  random.randint(0, 9)
     return json.dumps(
         {
-            "id": random.randint(0, 9),
+            "id": random_value,
             "timestamp": datetime.utcnow().isoformat(),
+            "value": np.random.normal(random_value, 0.5)
         }
     )
 
@@ -28,7 +31,7 @@ def main() -> None:
         data = build_data_packet().encode("utf-8")
 
         future = publisher.publish(topic_path, data, origin="python-sample")
-        logging.info(f"Published message %s: %s", future.result(), data)
+        logging.info(f"%s: %s", future.result(), data)
         time.sleep(0.1)
 
 

@@ -13,14 +13,14 @@ from apache_beam.utils.timestamp import Duration
 from apache_beam.utils.timestamp import TimestampTypes
 from apache_beam.transforms import trigger, window
 
-InputElement = namedtuple("InputElement", "id timestamp")
+InputElement = namedtuple("InputElement", "id timestamp value")
 
 
 def human_readable_window(window) -> str:
     """Formats a window object into a human readable string."""
     if isinstance(window, beam.window.GlobalWindow):
         return str(window)
-    return f"{window.start.to_utc_datetime()} - {window.end.to_utc_datetime()}"
+    return f"{window.start.to_utc_datetime():%Y-%m-%d %H:%M:%S.%f} - {window.end.to_utc_datetime():%Y-%m-%d %H:%M:%S.%f}"
 
 
 class PrintElementInfo(beam.DoFn):
@@ -41,9 +41,13 @@ def PrintWindowInfo(pcollection):
 
     class PrintCountsInfo(beam.DoFn):
         def process(self, num_elements, window=beam.DoFn.WindowParam):
-            print(
-                f">> Window [{human_readable_window(window)}] has {num_elements} elements"
+            logging.info("-"*80)
+            logging.info(
+                "Window [%s] has %s elements", human_readable_window(window), num_elements
             )
+            # print(
+            #     f">> Window [{human_readable_window(window)}] has {num_elements} elements"
+            # )
             yield num_elements
 
     return (
@@ -59,6 +63,7 @@ class ExtractElement(beam.DoFn):
         x_out = InputElement(
             id=x["id"],
             timestamp=datetime.fromisoformat(x["timestamp"]),
+            value=x["value"]
         )
 
         return (
@@ -109,7 +114,20 @@ class Logger(beam.DoFn):
 
 
 def combine_function(values):
-    logging.info("Combine: %s", values)
+    
+    try:
+        if values is not None:
+            data = [y for y in [x for x in values][0]]
+            logging.info(
+                ">Group [%s - %s] id: %s records: %02d mean: %+1.3f", 
+                data[0].value.timestamp, 
+                data[-1].value.timestamp,
+                data[0].value.id,
+                len(data),
+                sum([d.value.value for d in data]) / len(data)
+            )
+    except Exception:
+        pass
 
 
 def main(argv=None):
@@ -132,53 +150,25 @@ def main(argv=None):
             >> beam.ParDo(ExtractElement()).with_outputs("InputElement", "Exception")
         )
 
-        # windows = (
-        #     input.InputElement
-        #     | "GroupIntoBatches"
-        #     >> beam.GroupIntoBatches(batch_size=100, max_buffering_duration_secs=1)
-        #     | "LogWindow" >> beam.ParDo(Logger(label="raw_window"))
-        # )
-
         windows = (
             input.InputElement
             | beam.WindowInto(
                 beam.window.FixedWindows(10),
-                trigger=trigger.Repeatedly(trigger.Always()),
+                trigger=trigger.AfterWatermark(),
                 accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
                 allowed_lateness=Duration.of(0)
-                
             )
-            # trigger.AfterAny(
-            #     trigger.AfterProcessingTime(delay=10),
-            #     trigger.AfterWatermark(
-            #     #     early=trigger.AfterProcessingTime(delay=1),
-            #     #     late=trigger.AfterCount(1),
-            #     ),
-            # ),
-            #         ),
-            #         accumulation_mode=trigger.AccumulationMode.DISCARDING,
-            #         allowed_lateness=Duration.of(1),
-            #     )
-            # )
         )
+
+        # Log window info
+        windows | "Print Window Info" >> PrintWindowInfo()
 
         grouping = (
             windows
-            # | beam.WindowInto(
-            #     window.GlobalWindows(),
-            #     trigger=trigger.Repeatedly(trigger.AfterProcessingTime(10)),
-            #     accumulation_mode=trigger.AccumulationMode.DISCARDING,
-            # )
-            # | "LogWindow" >> beam.ParDo(Logger(label="windowed"))
-            # | beam.GroupByKey()
-            # | beam.GroupIntoBatches(batch_size=100, max_buffering_duration_secs=1)
-            # | "LogWindow2" >> beam.ParDo(Logger(label="grouped"))
-            | beam.CombinePerKey(combine_function)
-            # | beam.ParDo(ReifyWindowsFn())
-            # | "LogWindow2" >> beam.ParDo(Logger(label="final"))
+                | beam.GroupByKey()
+                | beam.CombinePerKey(combine_function)
         )
 
-        (windows | beam.ParDo(PrintElementInfo()) | PrintWindowInfo())
         # all_exceptions = beam.Flatten(
         #     input.Exception,
         #     ...
