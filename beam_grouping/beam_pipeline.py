@@ -42,9 +42,6 @@ def PrintWindowInfo(pcollection):
                 human_readable_window(window),
                 num_elements,
             )
-            # print(
-            #     f">> Window [{human_readable_window(window)}] has {num_elements} elements"
-            # )
             yield num_elements
 
     return (
@@ -62,23 +59,6 @@ class Logger(beam.DoFn):
 
     def process(self, element, *args, **kwargs):
         logging.info("%s: %s %s", self.label, type(element), element)
-
-        # print(self.label, element)
-        try:
-            logging.info(
-                "%s: %s %s",
-                self.label,
-                element[0],
-                str([x.timestamp for x in element[1]]),
-            )
-        except Exception:
-            pass
-
-        try:
-            logging.info("%s: %s %s", self.label, element[0], element[1].timestamp)
-        except Exception:
-            pass
-
         yield element
 
 
