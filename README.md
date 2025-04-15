@@ -18,10 +18,10 @@ The pipeline showcases key Apache Beam concepts including windowing strategies, 
 
 ### Pipeline Components
 
-- **Main Pipeline** (`beam_pipeline.py`): 
+- **Main Pipeline** (`beam_pipeline.py`):
   - Unified pipeline that can read from either Google Cloud Pub/Sub or local emulator
   - Configurable via command-line arguments
-- **Transformers** (`transformers/extract_element.py`): 
+- **Transformers** (`transformers/extract_element.py`):
   - Contains the parsing logic that converts raw messages to structured data objects
 - **Data Models**:
   - `InputElement`: Structured representation of valid messages (ID, timestamp, value)

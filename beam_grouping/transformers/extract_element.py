@@ -5,8 +5,8 @@ import apache_beam as beam
 from apache_beam.transforms.window import TimestampedValue
 
 from beam_grouping.pipeline_dataclasses import (
-    InputElement,
     ExceptionElement,
+    InputElement,
     PipelineTags,
 )
 

@@ -8,8 +8,8 @@ from apache_beam.options.pipeline_options import PipelineOptions, StandardOption
 from apache_beam.transforms import trigger
 from apache_beam.utils.timestamp import Duration
 
-from beam_grouping.transformers import ExtractElement
 from beam_grouping.pipeline_dataclasses import PipelineTags
+from beam_grouping.transformers import ExtractElement
 
 
 def human_readable_window(window) -> str:
@@ -83,37 +83,37 @@ def main(argv=None):
     """Main entry point; defines and runs the pipeline."""
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
-        '--subscription',
+        "--subscription",
         default="demo-topic-sub",
-        help='Pub/Sub subscription to read from'
+        help="Pub/Sub subscription to read from",
     )
     arg_parser.add_argument(
-        '--use_emulator',
-        action='store_true',
-        help='Use the Pub/Sub emulator'
+        "--use_emulator", action="store_true", help="Use the Pub/Sub emulator"
     )
     arg_parser.add_argument(
-        '--project',
-        default='local-project',
-        help='Project ID for Pub/Sub emulator (only used with --use_emulator)'
+        "--project",
+        default="local-project",
+        help="Project ID for Pub/Sub emulator (only used with --use_emulator)",
     )
     arg_parser.add_argument(
-        '--emulator_host',
-        default='localhost:8085',
-        help='Pub/Sub emulator host:port (only used with --use_emulator)'
+        "--emulator_host",
+        default="localhost:8085",
+        help="Pub/Sub emulator host:port (only used with --use_emulator)",
     )
 
     known_args, pipeline_args = arg_parser.parse_known_args(argv)
 
     # Configure for emulator if requested
     if known_args.use_emulator:
-        os.environ['PUBSUB_EMULATOR_HOST'] = known_args.emulator_host
+        os.environ["PUBSUB_EMULATOR_HOST"] = known_args.emulator_host
         logging.info(f"Using Pub/Sub emulator at {known_args.emulator_host}")
-        
+
         # If subscription doesn't contain project, add it
-        if not known_args.subscription.startswith('projects/'):
-            known_args.subscription = f"projects/{known_args.project}/subscriptions/{known_args.subscription}"
-    
+        if not known_args.subscription.startswith("projects/"):
+            known_args.subscription = (
+                f"projects/{known_args.project}/subscriptions/{known_args.subscription}"
+            )
+
     logging.info(f"Reading from subscription: {known_args.subscription}")
 
     pipeline_options = PipelineOptions(pipeline_args, allow_unsafe_triggers=True)
@@ -122,8 +122,7 @@ def main(argv=None):
     with beam.Pipeline(options=pipeline_options) as p:
         input = (
             p
-            | "Read from Pubsub"
-            >> ReadFromPubSub(subscription=known_args.subscription)
+            | "Read from Pubsub" >> ReadFromPubSub(subscription=known_args.subscription)
             | "Unpack Message"
             >> beam.ParDo(ExtractElement()).with_outputs("InputElement", "Exception")
         )
@@ -138,10 +137,12 @@ def main(argv=None):
         # Log window info
         windows | "Print Window Info" >> PrintWindowInfo()
 
-        grouping = windows | beam.GroupByKey() | beam.CombinePerKey(combine_function)
+        _ = windows | beam.GroupByKey() | beam.CombinePerKey(combine_function)
 
         # Log exceptions
-        input[PipelineTags.EXCEPTION] | "Log Exceptions" >> beam.ParDo(Logger("Exception"))
+        input[PipelineTags.EXCEPTION] | "Log Exceptions" >> beam.ParDo(
+            Logger("Exception")
+        )
 
 
 if __name__ == "__main__":

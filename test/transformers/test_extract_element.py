@@ -7,7 +7,7 @@ from apache_beam import window
 from apache_beam.testing import test_pipeline
 from apache_beam.testing.util import assert_that, equal_to
 
-from beam_grouping.pipeline_dataclasses import InputElement, ExceptionElement
+from beam_grouping.pipeline_dataclasses import ExceptionElement, InputElement
 from beam_grouping.transformers import ExtractElement
 
 
@@ -56,9 +56,9 @@ class TestTransformElement(unittest.TestCase):
                 "InputElement", "Exception"
             )
 
-        assert_that(output.Exception, equal_to([]), label="Expect no exceptions")
+            assert_that(output.Exception, equal_to([]), label="Expect no exceptions")
 
-        assert_that(output.InputElement, equal_to(self.EXPECTED_ELEMENTS))
+            assert_that(output.InputElement, equal_to(self.EXPECTED_ELEMENTS))
 
     def test_extract_element_exception(self):
         missing_element = [
