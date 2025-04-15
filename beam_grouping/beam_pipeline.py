@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 
 import apache_beam as beam
 from apache_beam.io import ReadFromPubSub
@@ -79,10 +80,41 @@ def combine_function(values):
 
 
 def main(argv=None):
-    """Main entry point; defines and runs the wordcount pipeline."""
+    """Main entry point; defines and runs the pipeline."""
     arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument(
+        '--subscription',
+        default="demo-topic-sub",
+        help='Pub/Sub subscription to read from'
+    )
+    arg_parser.add_argument(
+        '--use_emulator',
+        action='store_true',
+        help='Use the Pub/Sub emulator'
+    )
+    arg_parser.add_argument(
+        '--project',
+        default='local-project',
+        help='Project ID for Pub/Sub emulator (only used with --use_emulator)'
+    )
+    arg_parser.add_argument(
+        '--emulator_host',
+        default='localhost:8085',
+        help='Pub/Sub emulator host:port (only used with --use_emulator)'
+    )
 
     known_args, pipeline_args = arg_parser.parse_known_args(argv)
+
+    # Configure for emulator if requested
+    if known_args.use_emulator:
+        os.environ['PUBSUB_EMULATOR_HOST'] = known_args.emulator_host
+        logging.info(f"Using Pub/Sub emulator at {known_args.emulator_host}")
+        
+        # If subscription doesn't contain project, add it
+        if not known_args.subscription.startswith('projects/'):
+            known_args.subscription = f"projects/{known_args.project}/subscriptions/{known_args.subscription}"
+    
+    logging.info(f"Reading from subscription: {known_args.subscription}")
 
     pipeline_options = PipelineOptions(pipeline_args, allow_unsafe_triggers=True)
     pipeline_options.view_as(StandardOptions).streaming = True
@@ -91,9 +123,7 @@ def main(argv=None):
         input = (
             p
             | "Read from Pubsub"
-            >> ReadFromPubSub(
-                subscription="projects/ms-data-projects/subscriptions/demo-topic-sub"
-            )
+            >> ReadFromPubSub(subscription=known_args.subscription)
             | "Unpack Message"
             >> beam.ParDo(ExtractElement()).with_outputs("InputElement", "Exception")
         )
@@ -110,12 +140,8 @@ def main(argv=None):
 
         grouping = windows | beam.GroupByKey() | beam.CombinePerKey(combine_function)
 
-        # all_exceptions = beam.Flatten(
-        #     input.[PipelineTags.EXCEPTION]
-        #     ...
-        # )
-
-        # all_exceptions >> WriteToBigQuery(...)
+        # Log exceptions
+        input[PipelineTags.EXCEPTION] | "Log Exceptions" >> beam.ParDo(Logger("Exception"))
 
 
 if __name__ == "__main__":
