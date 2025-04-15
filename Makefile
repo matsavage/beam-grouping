@@ -44,7 +44,4 @@ stop-emulator:
 		echo "No emulator PID file found."; \
 	fi
 
-# For convenience, run all local commands
-run-local: setup-emulator run-local-pipeline run-local-publisher
-
 .PHONY: run-test run-pipeline run-publisher run-local-pipeline run-local-publisher setup-emulator stop-emulator run-local
